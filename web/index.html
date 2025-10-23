@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aachen Rail Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root{
+      --rwth-blue:#00549F;
+      --rwth-blue-2:#0077C8;
+      --bg:#0A0F1D;
+      --panel:#111829;
+      --soft:#1A2235;
+      --text:#EAEFF7;
+      --muted:#A9B4C6;
+      --good:#2ECC71;
+      --warn:#F1C40F;
+      --bad:#E74C3C;
+      --cancel:#777;
+      --accent:#35A6E8;
+      --shadow:0 10px 30px rgba(0,0,0,0.35);
+    }
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      padding:0;
+      background:
+        radial-gradient(1200px 500px at 20% -40%, rgba(0,84,159,0.25), transparent 70%),
+        linear-gradient(180deg, #0A0F1D 0%, #0D1322 100%);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      overflow:hidden; /* No scroll: everything fits one page */
+    }
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{
+      height:80px;
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      align-items:center;
+      gap:16px;
+      padding:16px 24px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:14px;
+    }
+    .logo{
+      height:34px;width:34px;border-radius:8px;
+      background: linear-gradient(135deg, var(--rwth-blue), var(--rwth-blue-2));
+      box-shadow: var(--shadow);
+    }
+    h1{font-size:20px;margin:0;}
+    .header-controls{
+      display:flex;align-items:center;gap:10px;
+    }
+    select, .text-input{
+  	appearance:none; background:var(--panel);
+  	border:1px solid #223050; color:var(--text);
+  	border-radius:8px; padding:8px 12px; min-width:240px;
+  	box-shadow: var(--shadow);
+    }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--panel); border:1px solid #223050;
+      color:var(--text); border-radius:8px; padding:8px 12px;
+      box-shadow: var(--shadow); cursor:pointer;
+      transition:transform .08s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0)}
+    main{
+      height:calc(100vh - 80px);
+      padding:12px 24px 18px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:16px;
+    }
+    .panel{
+      background:var(--panel);
+      border:1px solid #223050;
+      border-radius:16px;
+      padding:14px;
+      display:flex; flex-direction:column; min-width:260px;
+      box-shadow: var(--shadow);
+    }
+    .panel-header{
+      display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
+    }
+    .panel-title{
+      font-weight:600; font-size:16px;
+    }
+    .stamp{
+      font-size:12px; color:var(--muted);
+    }
+    .list{
+      list-style:none; margin:0; padding:0;
+      display:grid; gap:8px;
+      /* Prevent overflow to keep one page */
+      overflow:hidden;
+    }
+    .item{
+      background:var(--soft); border:1px solid #263553;
+      border-radius:12px; padding:10px; display:grid;
+      grid-template-columns: 86px 1fr auto auto;
+      grid-template-rows: auto auto; align-items:center;
+      gap:6px 8px; animation:fadeIn .25s ease both;
+    }
+    @keyframes fadeIn{
+      from{opacity:0; transform:translateY(4px)}
+      to{opacity:1; transform:translateY(0)}
+    }
+    .line-badge{
+      background:linear-gradient(135deg,#1f3b64,#234472);
+      color:#fff; font-weight:700; letter-spacing:.2px;
+      border-radius:8px; padding:8px 10px; text-align:center;
+      min-width:70px;
+    }
+    .dest{
+      font-weight:600; font-size:14px;
+    }
+    .meta{
+      font-size:12px; color:var(--muted);
+    }
+    .times{
+      display:flex; align-items:center; gap:8px; font-size:13px;
+    }
+    .scheduled{color:var(--muted)}
+    .delayed{color:var(--accent); font-weight:600}
+    .delay-badge{
+      padding:4px 8px; border-radius:8px; font-weight:700; font-size:12px;
+      background:#1d2a44; border:1px solid #2c4777;
+    }
+    .delay-good{color:var(--good); border-color:#2ECC71; background:#12261A}
+    .delay-warn{color:#F1C40F; border-color:#F1C40F; background:#28240D}
+    .delay-bad{color:#E74C3C; border-color:#E74C3C; background:#2A1212}
+    .cancelled{
+      color:#eee; background:#333; border:1px solid #555;
+    }
+    .platform{
+      font-size:13px; color:#CCE3FF; background:#193055; border:1px solid #335a9a;
+      padding:6px 10px; border-radius:8px;
+    }
+    .skeleton{
+      opacity:.5; background:linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02), rgba(255,255,255,0.08));
+      background-size:200% 100%;
+      animation:shimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes shimmer{
+      0%{background-position:200% 0}
+      100%{background-position:-200% 0}
+    }
+    footer-note{
+      position:fixed; left:24px; bottom:10px; font-size:11px; color:var(--muted);
+    }
+    /* Compact layout for narrow widths */
+    @media (max-width:1100px){
+      main{grid-template-columns: 1fr 1fr}
+    }
+    @media (max-width:780px){
+      main{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>Aachen Rail Monitor</h1>
+    </div>
+    <div class="header-controls">
+  	<label for="stationSelect" class="sr-only">Station</label>
+  	<select id="stationSelect" aria-label="Choose monitored station"></select>
+    </div>
+    <div class="header-controls">
+      <a href="info.html" class="btn" title="Info">
+        <span>Info</span>
+      </a>
+      <a href="legal.html" class="btn" title="Legal">
+        <span>Legal</span>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel" id="panel-next">
+      <div class="panel-header">
+        <div class="panel-title">Next departures to Aachen Hbf</div>
+        <div class="stamp" id="stamp-next">Loading…</div>
+      </div>
+      <ul class="list" id="list-next"></ul>
+    </section>
+
+    <section class="panel" id="panel-day">
+      <div class="panel-header">
+        <div class="panel-title">Most delayed today</div>
+        <div class="stamp" id="stamp-day">Loading…</div>
+      </div>
+      <ul class="list" id="list-day"></ul>
+    </section>
+
+    <section class="panel" id="panel-week">
+      <div class="panel-header">
+        <div class="panel-title">Most delayed last 7 days</div>
+        <div class="stamp" id="stamp-week">Loading…</div>
+      </div>
+      <ul class="list" id="list-week"></ul>
+    </section>
+  </main>
+
+  <footer-note>
+    Data courtesy of Deutsche Bahn Timetables API. Not affiliated with Deutsche Bahn. Updates every 20s.
+  </footer-note>
+
+<script>
+  // Constants
+  const REFRESH_MS = 20000; // 20 seconds
+  const MAX_NEXT = 7;       // limit visible items so everything fits on one page
+  const MAX_DAY = 6;
+  const MAX_WEEK = 6;
+
+  const DEFAULT_BASE_URL = "http://localhost:8080";
+
+  let refreshTimer = null;
+  let currentEva = null;
+
+  // Helpers
+  function normalizeBaseUrl(u){
+    if (!u) return DEFAULT_BASE_URL;
+    return u.endsWith("/") ? u : (u + "/");
+  }
+  function ts(dat, time){ // "23.10.2025", "11:32" -> timestamp
+    const [d,m,y]=dat.split(".").map(v=>parseInt(v,10));
+    const [h,mi]=time.split(":").map(v=>parseInt(v,10));
+    return new Date(y, m-1, d, h, mi).getTime();
+  }
+  function classifyDelay(del, cancelled){
+    // Keep a distinct visual style for cancellations, but still show delay
+    if (cancelled) return "cancelled";
+    if (del <= 0) return "delay-good";
+    if (del <= 5) return "delay-warn";
+    return "delay-bad";
+  }
+  function delayLabel(del, cancelled){
+    const mins = typeof del === "number" ? del : (Number(del) || 0);
+    const delayText = mins <= 0 ? "On time" : `+${mins} min`;
+    return cancelled ? `Cancelled • ${delayText}` : delayText;
+  }
+  function sanitized(val, fallback="–"){
+    return (val === undefined || val === null || val === "") ? fallback : String(val);
+  }
+  function setStamp(id, dateObj = new Date()){
+    const el = document.getElementById(id);
+    if (el) {
+      const t = dateObj.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      el.textContent = `Updated ${t}`;
+    }
+  }
+  function toNumber(x){
+    const n = Number(x);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function coerceTrains(arr){
+    return (Array.isArray(arr) ? arr : []).map(t => ({
+      ...t,
+      del: toNumber(t.del),
+      can: !!t.can
+    }));
+  }
+
+  // API implementation using Base URL
+  window.TrainAPI = {
+    async getStations(){
+	    const endpoint = `${DEFAULT_BASE_URL}/bahn/list`;
+	console.log(endpoint)
+      const res = await fetch(endpoint);
+      if (!res.ok) throw new Error(`Stations fetch failed: HTTP ${res.status}`);
+      const raw = await res.json();
+
+      // Accept either:
+      // - an array of stations, or
+      // - an object with { list: [...] } or { stations: [...] }
+      let list;
+      if (Array.isArray(raw)) list = raw;
+      else if (raw && Array.isArray(raw.list)) list = raw.list;
+      else if (raw && Array.isArray(raw.stations)) list = raw.stations;
+      else throw new Error("Unexpected stations payload format");
+
+      const mapped = list.map(s => ({
+        eva: String(s.eva ?? s.evaNumber ?? s.id ?? ""),
+        name: String(s.name ?? s.title ?? "")
+      })).filter(s => s.eva && s.name);
+
+      return { list: mapped };
+    },
+    async getStationData(eva){
+	    const endpoint = `${DEFAULT_BASE_URL}/bahn/eva/${encodeURIComponent(eva)}`;
+      const res = await fetch(endpoint);
+      if (!res.ok) throw new Error(`Station data fetch failed: HTTP ${res.status}`);
+      const data = await res.json();
+
+      const next = coerceTrains(data.next || []);
+      const day  = coerceTrains(data.score?.day || []);
+      const week = coerceTrains(data.score?.week || []);
+
+      return { next, score: { day, week } };
+    }
+  };
+
+  // Rendering
+  function renderList(list, containerId, maxItems){
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const items = list.slice(0, maxItems);
+    const moreCount = Math.max(0, list.length - items.length);
+
+    const html = items.map(tr => {
+      const cancelled = !!tr.can;
+      const delayClass = classifyDelay(tr.del, cancelled);
+      const delayText = delayLabel(tr.del, cancelled);
+      const platformText = cancelled ? "–" : sanitized(tr.plt);
+      const scheduled = sanitized(tr.dep);
+      const realtime = cancelled ? "—" : sanitized(tr.dde);
+
+      return `
+        <li class="item">
+          <div class="line-badge">${sanitized(tr.l)}</div>
+          <div>
+            <div class="dest">${sanitized(tr.end)}</div>
+            <div class="meta">${sanitized(tr.dat)}</div>
+          </div>
+          <div class="times">
+            <span class="scheduled" title="Scheduled departure">${scheduled}</span>
+            <span>→</span>
+            <span class="delayed" title="Real-time departure">${realtime}</span>
+          </div>
+          <div class="platform" title="Platform">Pl. ${platformText}</div>
+          <div class="delay-badge ${delayClass}" style="grid-column: 1 / -1;">
+            ${delayText}
+          </div>
+        </li>
+      `;
+    }).join("");
+
+    const moreNote = moreCount > 0
+      ? `<li class="item skeleton"><div style="grid-column:1/-1; text-align:center; padding:8px 0;">+ ${moreCount} more not shown</div></li>`
+      : "";
+
+    container.innerHTML = html + moreNote;
+  }
+
+  // Main logic
+  async function init(){
+    // Pre-fill skeletons so layout looks good during first load
+    ["list-next","list-day","list-week"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = Array.from({length:5}).map(()=>(
+          `<li class="item skeleton">
+            <div class="line-badge">&nbsp;</div>
+            <div><div class="dest">&nbsp;</div><div class="meta">&nbsp;</div></div>
+            <div class="times"><span class="scheduled">&nbsp;&nbsp;&nbsp;</span><span>→</span><span class="delayed">&nbsp;&nbsp;&nbsp;</span></div>
+            <div class="platform">&nbsp;&nbsp;&nbsp;</div>
+            <div class="delay-badge">&nbsp;&nbsp;&nbsp;</div>
+          </li>`
+        )).join("");
+      }
+    });
+
+    await loadStations();
+    const select = document.getElementById("stationSelect");
+    if (select && select.value) {
+      currentEva = select.value;
+      await refreshStationData();
+      startAutoRefresh();
+    }
+  }
+
+  async function loadStations(){
+    try{
+      const prevEva = currentEva;
+      const data = await window.TrainAPI.getStations();
+      const stations = (data && Array.isArray(data.list)) ? data.list : [];
+      const select = document.getElementById("stationSelect");
+      select.innerHTML = stations.map(s=>(
+        `<option value="${s.eva}">${s.name}</option>`
+      )).join("");
+
+      // Keep previous selection if still present, otherwise default to first
+      if (prevEva && stations.some(s => s.eva === prevEva)) {
+        select.value = prevEva;
+      } else if (stations[0]) {
+        select.value = stations[0].eva;
+      }
+
+      select.addEventListener("change", async (e)=>{
+        currentEva = e.target.value;
+        stopAutoRefresh();
+        await refreshStationData();
+        startAutoRefresh();
+      });
+    }catch(err){
+      console.error("Error loading stations:", err);
+      alert("Could not load monitored stations. Please check your backend Base URL.");
+    }
+  }
+
+  async function refreshStationData(){
+    if (!currentEva) return;
+    try{
+      const data = await window.TrainAPI.getStationData(currentEva);
+
+      const next = Array.isArray(data.next) ? data.next : [];
+      const day  = data.score && Array.isArray(data.score.day) ? data.score.day : [];
+      const week = data.score && Array.isArray(data.score.week) ? data.score.week : [];
+
+      // Sort
+      next.sort((a,b)=>ts(a.dat,a.dep)-ts(b.dat,b.dep));
+      day.sort((a,b)=>delayScore(b)-delayScore(a));
+      week.sort((a,b)=>delayScore(b)-delayScore(a));
+
+      renderList(next, "list-next", MAX_NEXT);
+      renderList(day,  "list-day",  MAX_DAY);
+      renderList(week, "list-week", MAX_WEEK);
+
+      setStamp("stamp-next");
+      setStamp("stamp-day");
+      setStamp("stamp-week");
+    }catch(err){
+      console.error("Error loading station data:", err);
+      const t = document.getElementById("stamp-next");
+      if (t) t.textContent = "Update failed";
+    }
+  }
+
+  function delayScore(tr){
+    // Treat cancellations as highest severity
+    if (tr.can) return Number.POSITIVE_INFINITY;
+    return (typeof tr.del === "number") ? tr.del : (Number(tr.del) || 0);
+  }
+
+  function startAutoRefresh(){
+    stopAutoRefresh();
+    refreshTimer = setInterval(refreshStationData, REFRESH_MS);
+  }
+
+  function stopAutoRefresh(){
+    if (refreshTimer) clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+
+  document.addEventListener("visibilitychange", ()=>{
+    if (document.hidden) stopAutoRefresh();
+    else startAutoRefresh();
+  });
+
+  window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
+

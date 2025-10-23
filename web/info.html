@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>About Aachen Rail Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0A0F1D; --panel:#111829; --text:#EAEFF7; --muted:#A9B4C6;
+      --accent:#35A6E8; --shadow:0 10px 30px rgba(0,0,0,0.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:24px; background:
+        radial-gradient(1200px 500px at 20% -40%, rgba(0,84,159,0.25), transparent 70%),
+        linear-gradient(180deg, #0A0F1D 0%, #0D1322 100%);
+      color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial;
+    }
+    .wrap{
+      max-width:900px; margin:0 auto; background:var(--panel);
+      border:1px solid #223050; border-radius:16px; box-shadow:var(--shadow);
+      padding:20px;
+    }
+    h1{margin-top:0;}
+    p{color:var(--muted); line-height:1.6}
+    .btn{display:inline-block; margin-top:10px; padding:8px 12px; background:#13203b; border:1px solid #2b4679; border-radius:8px; color:#fff; text-decoration:none}
+    .btn:hover{background:#172647}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>About this page</h1>
+    <p>
+      This website shows trains traveling from a selected monitored station to Aachen Hbf.
+      You can quickly see scheduled departure, real-time departure (including delay), platform,
+      train line, date, end station, and more. Lists are refreshed automatically every 20 seconds.
+    </p>
+    <p>
+      The “Next departures” list is ordered by scheduled departure time. The “Most delayed today”
+      and “Most delayed last 7 days” lists show trains with the largest delays or cancellations.
+    </p>
+    <p>
+      Data is provided by the Deutsche Bahn Timetables API. This site is not affiliated with Deutsche Bahn.
+      Accuracy is not guaranteed; always check official sources if needed.
+    </p>
+    <p>
+      For legal information (Impressum and Datenschutz), please see the Legal page.
+    </p>
+    <a href="index.html" class="btn">Back to main page</a>
+  </div>
+</body>
+</html>
