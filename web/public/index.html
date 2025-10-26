@@ -220,7 +220,7 @@
   const MAX_DAY = 6;
   const MAX_WEEK = 6;
 
-  const DEFAULT_BASE_URL = "http://localhost:8080";
+  const DEFAULT_BASE_URL = "http://bahn.paull.dev";
 
   let refreshTimer = null;
   let currentEva = null;
@@ -403,7 +403,7 @@
       });
     }catch(err){
       console.error("Error loading stations:", err);
-      alert("Could not load monitored stations. Please check your backend Base URL.");
+      alert("Service currently unavailable: Could not load monitored stations.");
     }
   }
 

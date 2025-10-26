@@ -1,0 +1,17 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: paull
+    environment:
+      VIRTUAL_HOST: paull.dev,www.paull.dev
+      LETSENCRYPT_HOST: paull.dev,www.paull.dev
+      LETSENCRYPT_EMAIL: mail@paull.dev
+    volumes:
+      - ./public:/var/www/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - webnet
+
+networks:
+  webnet:
+    external: true
